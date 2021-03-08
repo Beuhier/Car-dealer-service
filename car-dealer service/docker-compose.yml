@@ -1,0 +1,48 @@
+version: '3'
+services:
+  discovery-server:
+    image: beuhier/microservice-docker-discovery-service:0.0.1-SNAPSHOT
+    ports:
+      - 8761:8761
+    networks:
+      - car-dealer-network
+  apigateway-service:
+    image: beuhier/microservice-docker-api-gateway:0.0.1-SNAPSHOT
+    environment:
+     - JAVA_OPTS=
+      -DEUREKA_SERVER=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
+    ports:
+      - 8081:8081
+    networks:
+      - car-dealer-network
+  car-service:
+    image: beuhier/microservice-docker-car-service:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+       -DEUREKA_SERVER=http://discovery-server:8761/eureka/
+    restart: on-failure
+    depends_on:
+      - discovery-server
+      - apigateway-service
+    ports:
+      - 8090:8090
+    networks:
+      - car-dealer-network
+  dealer-service:
+    image: beuhier/microservice-docker-dealer-service:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+        -DEUREKA_SERVER=http://discovery-server:8761/eureka/
+    restart: on-failure
+    depends_on:
+      - discovery-server
+      - apigateway-service
+    ports:
+      - 8091:8091
+    networks:
+      - car-dealer-network
+networks:
+    car-dealer-network:
+        driver: bridge
